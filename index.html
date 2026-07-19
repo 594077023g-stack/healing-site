@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心里有事 — 心灵疗愈</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cream: #fef9f0;
+    --warm-white: #fffaf5;
+    --sage: #8b9d83;
+    --sage-light: #e8efe4;
+    --terracotta: #c4826b;
+    --terracotta-light: #f5e6df;
+    --muted-gold: #c4a97d;
+    --text: #3d3835;
+    --text-light: #6b635e;
+    --text-muted: #9a918b;
+    --shadow: 0 2px 24px rgba(60, 50, 40, 0.06);
+    --shadow-lg: 0 8px 40px rgba(60, 50, 40, 0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  html { scroll-behavior: smooth; }
+  
+  body {
+    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- Navigation ---- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(254, 249, 240, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    padding: 0 10%;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  nav .logo {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.25rem; font-weight: 600;
+    color: var(--sage);
+    letter-spacing: 0.05em;
+  }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a {
+    color: var(--text-light); text-decoration: none;
+    font-size: 0.9rem; font-weight: 400;
+    transition: color 0.3s;
+  }
+  nav .nav-links a:hover { color: var(--terracotta); }
+
+  /* ---- Hero ---- */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 10% 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -40%; left: -20%; width: 140%; height: 140%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(139,157,131,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, rgba(196,130,107,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 80%, rgba(196,169,125,0.05) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 680px; }
+  .hero .tag {
+    display: inline-block;
+    background: var(--sage-light);
+    color: var(--sage);
+    font-size: 0.8rem; font-weight: 500;
+    padding: 6px 18px; border-radius: 20px;
+    margin-bottom: 2rem;
+    letter-spacing: 0.08em;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  .hero h1 .highlight {
+    color: var(--terracotta);
+    position: relative;
+  }
+  .hero h1 .highlight::after {
+    content: '';
+    position: absolute; left: 0; bottom: 0; width: 100%; height: 6px;
+    background: rgba(196,130,107,0.15);
+    border-radius: 3px;
+  }
+  .hero .subtitle {
+    font-size: 1.15rem; color: var(--text-light);
+    font-weight: 300; line-height: 1.8;
+    margin-bottom: 2.8rem;
+  }
+  .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 32px;
+    border-radius: 50px; border: none;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 0.95rem; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.3s ease;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary {
+    background: var(--sage);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(139,157,131,0.3);
+  }
+  .btn-primary:hover {
+    background: #7d8f75;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(139,157,131,0.4);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--terracotta);
+    border: 1.5px solid var(--terracotta);
+  }
+  .btn-outline:hover {
+    background: var(--terracotta-light);
+    transform: translateY(-2px);
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--text-muted); font-size: 0.75rem;
+    animation: float 2.5s ease-in-out infinite;
+  }
+  .scroll-hint .arrow { font-size: 1.2rem; }
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ---- Section Common ---- */
+  section { padding: 100px 10%; }
+  .section-label {
+    display: inline-block;
+    font-size: 0.8rem; font-weight: 500;
+    color: var(--sage); letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+  }
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 600; color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+  .section-desc {
+    color: var(--text-light); font-size: 1.05rem;
+    font-weight: 300; max-width: 560px;
+    margin-bottom: 3rem;
+  }
+
+  /* ---- Story Section ---- */
+  #tell-story {
+    background: var(--warm-white);
+    border-top: 1px solid rgba(0,0,0,0.03);
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+  }
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  .story-form-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    box-shadow: var(--shadow);
+  }
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.9rem; font-weight: 500;
+    color: var(--text); margin-bottom: 0.5rem;
+  }
+  .form-group textarea {
+    width: 100%; min-height: 220px;
+    padding: 1rem;
+    border: 1.5px solid #e8e3de;
+    border-radius: var(--radius-sm);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 0.95rem; color: var(--text);
+    line-height: 1.8; resize: vertical;
+    transition: border-color 0.3s;
+    background: #fefcf9;
+  }
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(139,157,131,0.1);
+  }
+  .form-group textarea::placeholder {
+    color: #c5bfb8;
+  }
+  .file-upload-area {
+    border: 1.5px dashed #e8e3de;
+    border-radius: var(--radius-sm);
+    padding: 1.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fefcf9;
+  }
+  .file-upload-area:hover {
+    border-color: var(--sage);
+    background: rgba(139,157,131,0.04);
+  }
+  .file-upload-area .icon {
+    font-size: 2rem; margin-bottom: 0.5rem;
+  }
+  .file-upload-area .text {
+    font-size: 0.9rem; color: var(--text-muted);
+  }
+  .file-upload-area .text strong { color: var(--sage); }
+  .file-upload-area input[type="file"] { display: none; }
+  .file-name {
+    margin-top: 0.6rem; font-size: 0.85rem; color: var(--sage);
+    display: none;
+  }
+  .file-name.visible { display: block; }
+
+  .form-submit {
+    display: flex; gap: 1rem; margin-top: 2rem;
+  }
+  .anonymity-note {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 1.2rem;
+    font-size: 0.82rem; color: var(--text-muted);
+  }
+  .anonymity-note .check { color: var(--sage); font-size: 1.1rem; }
+
+  .story-info {
+    display: flex; flex-direction: column; gap: 2rem;
+  }
+  .story-info .card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+  }
+  .story-info .card h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem; margin-bottom: 0.8rem;
+    color: var(--text);
+  }
+  .story-info .card p {
+    color: var(--text-light); font-size: 0.92rem;
+    line-height: 1.8;
+  }
+  .story-info .icon-circle {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 1rem;
+  }
+  .icon-circle.green { background: var(--sage-light); }
+  .icon-circle.warm { background: var(--terracotta-light); }
+  .icon-circle.gold { background: rgba(196,169,125,0.2); }
+
+  /* ---- Payment Section ---- */
+  #pricing {
+    background: var(--cream);
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 960px; margin: 0 auto;
+  }
+  .price-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    position: relative;
+    transition: all 0.3s;
+  }
+  .price-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+  }
+  .price-card.featured {
+    border: 2px solid var(--sage);
+    box-shadow: 0 8px 40px rgba(139,157,131,0.12);
+  }
+  .price-card.featured::before {
+    content: '推荐';
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--sage); color: #fff;
+    font-size: 0.75rem; font-weight: 500;
+    padding: 4px 18px; border-radius: 20px;
+  }
+  .price-card .plan-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem; font-weight: 600;
+    color: var(--text); margin-bottom: 0.5rem;
+  }
+  .price-card .plan-desc {
+    font-size: 0.85rem; color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+  .price-card .plan-price {
+    font-size: 2.8rem; font-weight: 600;
+    color: var(--text); margin-bottom: 0.3rem;
+  }
+  .price-card .plan-price .unit {
+    font-size: 1rem; font-weight: 400; color: var(--text-muted);
+  }
+  .price-card .plan-features {
+    list-style: none; text-align: left;
+    margin: 1.5rem 0; padding: 0;
+  }
+  .price-card .plan-features li {
+    padding: 0.5rem 0; font-size: 0.88rem; color: var(--text-light);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .price-card .plan-features li::before {
+    content: '✓'; color: var(--sage); font-weight: 600;
+  }
+  .price-card .btn { width: 100%; justify-content: center; }
+
+  /* ---- FAQ ---- */
+  #faq {
+    background: var(--warm-white);
+    border-top: 1px solid rgba(0,0,0,0.03);
+  }
+  .faq-list { max-width: 700px; margin: 0 auto; }
+  .faq-item {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .faq-item:hover { box-shadow: var(--shadow-lg); }
+  .faq-item .q {
+    font-weight: 500; color: var(--text);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .faq-item .q .indicator {
+    font-size: 1.2rem; color: var(--text-muted);
+    transition: transform 0.3s;
+  }
+  .faq-item.open .q .indicator { transform: rotate(45deg); }
+  .faq-item .a {
+    color: var(--text-light); font-size: 0.92rem;
+    line-height: 1.8; margin-top: 0;
+    max-height: 0; overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  .faq-item.open .a {
+    margin-top: 1rem;
+    max-height: 300px;
+  }
+
+  /* ---- Footer ---- */
+  footer {
+    background: var(--text);
+    color: rgba(255,255,255,0.6);
+    padding: 3rem 10%;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  footer .footer-logo {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem; color: rgba(255,255,255,0.8);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ---- Modal ---- */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: #fff; border-radius: var(--radius);
+    padding: 3rem; max-width: 460px; width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .modal .modal-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .modal h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.5rem; margin-bottom: 0.8rem;
+  }
+  .modal p { color: var(--text-light); font-size: 0.95rem; margin-bottom: 2rem; }
+  .modal .btn { width: 100%; justify-content: center; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 900px) {
+    .story-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+    nav { padding: 0 5%; }
+    section { padding: 60px 5%; }
+    .hero { padding: 100px 5% 60px; }
+  }
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 1.6rem; }
+    .form-submit { flex-direction: column; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="logo">心里有事</div>
+  <ul class="nav-links">
+    <li><a href="#tell-story">写下心事</a></li>
+    <li><a href="#pricing">获得疗愈</a></li>
+    <li><a href="#faq">常见问题</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <span class="tag">🌿 心灵疗愈</span>
+    <h1>
+      你不是<span class="highlight">有病</span>，<br>你只是<span class="highlight">心里有事</span>
+    </h1>
+    <p class="subtitle">
+      把你的故事告诉我，我给你答案。<br>
+      每一个心事，都值得被认真倾听。
+    </p>
+    <div class="hero-buttons">
+      <a href="#tell-story" class="btn btn-primary">📝 写下我的心事</a>
+      <a href="#pricing" class="btn btn-outline">💛 了解疗愈方案</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>向下滚动</span>
+    <span class="arrow">↓</span>
+  </div>
+</section>
+
+<!-- Story Submission Section -->
+<section id="tell-story">
+  <span class="section-label">STEP 1</span>
+  <h2 class="section-title">把你的心事写下来</h2>
+  <p class="section-desc">
+    在这里，你可以安全地倾诉。所有故事都是匿名提交，没有评判，只有倾听。
+  </p>
+
+  <div class="story-grid">
+    <!-- Form -->
+    <div class="story-form-card">
+      <form id="storyForm">
+        <div class="form-group">
+          <label for="story">✍️ 你的故事</label>
+          <textarea
+            id="story"
+            placeholder="写下那些让你辗转反侧的事吧……&#10;&#10;比如：最近总是失眠，脑子里反复出现一些画面……&#10;或者：和家人的关系让我喘不过气来……&#10;&#10;想说多少说多少，我都在这里听着。"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>📎 附件（可选）</label>
+          <div class="file-upload-area" id="fileArea" onclick="document.getElementById('fileInput').click()">
+            <div class="icon">📄</div>
+            <div class="text">点击上传文件，或拖拽到此处<br><strong>支持图片、文档、录音</strong></div>
+            <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.mp3,.wav,.m4a,.txt,.md" onchange="handleFile(this)">
+            <div class="file-name" id="fileName"></div>
+          </div>
+        </div>
+
+        <div class="form-submit">
+          <button type="submit" class="btn btn-primary">✨ 提交心事</button>
+        </div>
+
+        <div class="anonymity-note">
+          <span class="check">🔒</span> 你的故事是完全匿名的，没有人会知道你是谁
+        </div>
+      </form>
+    </div>
+
+    <!-- Info cards -->
+    <div class="story-info">
+      <div class="card">
+        <div class="icon-circle green">🌱</div>
+        <h3>倾诉本身就是疗愈</h3>
+        <p>把心里的事写出来，就已经在治愈自己。那些一直压在心里的话，终于有了一个安全的出口。</p>
+      </div>
+      <div class="card">
+        <div class="icon-circle warm">💌</div>
+        <h3>你会收到一封回信</h3>
+        <p>每份心事我都会认真阅读，用温柔的文字给你回信。不是诊断、不是说教——只是一个人，认真地回应另一个人。</p>
+      </div>
+      <div class="card">
+        <div class="icon-circle gold">🕊️</div>
+        <h3>你从来不是一个人</h3>
+        <p>这个世界上，有很多人和你一样，在深夜里独自想着心事。你并不孤单，你的感受是真实而重要的。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing">
+  <span class="section-label">STEP 2</span>
+  <h2 class="section-title">选择疗愈方式</h2>
+  <p class="section-desc">
+    根据你的需要，选择合适的回应方式。每种方式，都是一次真诚的对话。
+  </p>
+
+  <div class="pricing-grid">
+    <!-- Free tier -->
+    <div class="price-card">
+      <div class="plan-name">轻语</div>
+      <div class="plan-desc">一次温柔的倾听</div>
+      <div class="plan-price">¥0<span class="unit"></span></div>
+      <ul class="plan-features">
+        <li>提交你的故事</li>
+        <li>收到一封暖心回信</li>
+        <li>48小时内回复</li>
+        <li>匿名倾诉空间</li>
+      </ul>
+      <a href="#tell-story" class="btn btn-outline">免费开始</a>
+    </div>
+
+    <!-- Standard tier -->
+    <div class="price-card featured">
+      <div class="plan-name">深谈</div>
+      <div class="plan-desc">三次深入的对话</div>
+      <div class="plan-price">¥128<span class="unit"></span></div>
+      <ul class="plan-features">
+        <li>提交你的故事</li>
+        <li>三次来回深入对话</li>
+        <li>24小时内回复</li>
+        <li>个性化疗愈建议</li>
+        <li>可上传语音故事</li>
+      </ul>
+      <button class="btn btn-primary" onclick="openPayment('深谈', 128)">立即购买</button>
+    </div>
+
+    <!-- Premium tier -->
+    <div class="price-card">
+      <div class="plan-name">陪伴</div>
+      <div class="plan-desc">一周的持续陪伴</div>
+      <div class="plan-price">¥328<span class="unit"></span></div>
+      <ul class="plan-features">
+        <li>不限次数倾诉</li>
+        <li>一周内随时对话</li>
+        <li>12小时内回复</li>
+        <li>专属疗愈计划</li>
+        <li>语音通话支持</li>
+      </ul>
+      <button class="btn btn-outline" onclick="openPayment('陪伴', 328)">立即购买</button>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq">
+  <span class="section-label">💭</span>
+  <h2 class="section-title">你可能想问</h2>
+  <p class="section-desc">一些常见的问题，也许也是你想问的。</p>
+
+  <div class="faq-list">
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="q">
+        <span>这算是心理咨询吗？</span>
+        <span class="indicator">+</span>
+      </div>
+      <div class="a">不是。这是一个倾听和回应的空间——就像深夜和一个温柔的朋友聊天。如果有需要，我会建议你寻求专业的心理帮助。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="q">
+        <span>我的故事真的会匿名吗？</span>
+        <span class="indicator">+</span>
+      </div>
+      <div class="a">是的。你不需要提供真实姓名或任何身份信息。你只需要一个可以接收回信的邮箱。你的故事不会被分享给任何第三方。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="q">
+        <span>回信是由谁写的？</span>
+        <span class="indicator">+</span>
+      </div>
+      <div class="a">每一封回信都是真人用心写就的——带着善意、理解和真诚。不是模板，不是机器生成，而是人对人的关怀。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="q">
+        <span>我可以退费吗？</span>
+        <span class="indicator">+</span>
+      </div>
+      <div class="a">如果你对回信不满意，7天内可以申请退费。我们希望每一次回应都能给你带来一些温暖。</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">心里有事</div>
+  <p>你不是有病，你只是心里有事。把你的故事告诉我，我给你答案。</p>
+  <p style="margin-top: 0.5rem;">© 2025 心里有事 · 所有故事保密 · 用心回应每一个人</p>
+</footer>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <div class="modal-icon">💳</div>
+    <h2 id="modalTitle">确认购买</h2>
+    <p id="modalDesc"></p>
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+      <button class="btn btn-outline" onclick="closePayment()" style="width: 100%;">再想想</button>
+      <button class="btn btn-primary" onclick="processPayment()" style="width: 100%;">确认支付</button>
+    </div>
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1rem;">
+      🔒 支付由安全加密通道处理
+    </p>
+  </div>
+</div>
+
+<script>
+  // File upload
+  function handleFile(input) {
+    const nameEl = document.getElementById('fileName');
+    if (input.files.length > 0) {
+      nameEl.textContent = '已选择: ' + input.files[0].name;
+      nameEl.classList.add('visible');
+    } else {
+      nameEl.classList.remove('visible');
+    }
+  }
+
+  // Drag and drop
+  const fileArea = document.getElementById('fileArea');
+  fileArea.addEventListener('dragover', (e) => { e.preventDefault(); fileArea.style.borderColor = 'var(--sage)'; });
+  fileArea.addEventListener('dragleave', () => { fileArea.style.borderColor = '#e8e3de'; });
+  fileArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileArea.style.borderColor = '#e8e3de';
+    const input = document.getElementById('fileInput');
+    input.files = e.dataTransfer.files;
+    handleFile(input);
+  });
+
+  // Form submit
+  document.getElementById('storyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const story = document.getElementById('story').value.trim();
+    if (!story) {
+      alert('请写下你的心事再提交哦 🌿');
+      return;
+    }
+    // In production: POST to backend
+    alert('你的心事已经收到了 💌\n\n我会认真阅读，并在48小时内给你回信。\n请留意你的邮箱。');
+    this.reset();
+    document.getElementById('fileName').classList.remove('visible');
+  });
+
+  // FAQ toggle
+  function toggleFaq(item) {
+    // Close others
+    document.querySelectorAll('.faq-item.open').forEach(el => {
+      if (el !== item) el.classList.remove('open');
+    });
+    item.classList.toggle('open');
+  }
+
+  // Payment modal
+  let currentPlan = '';
+  let currentPrice = 0;
+
+  function openPayment(plan, price) {
+    currentPlan = plan;
+    currentPrice = price;
+    document.getElementById('modalTitle').textContent = '购买「' + plan + '」';
+    document.getElementById('modalDesc').textContent = '疗愈方案：' + plan + ' — ¥' + price;
+    document.getElementById('paymentModal').classList.add('active');
+  }
+
+  function closePayment() {
+    document.getElementById('paymentModal').classList.remove('active');
+  }
+
+  function processPayment() {
+    // In production: redirect to payment gateway (Stripe, Alipay, WeChat Pay, etc.)
+    alert('跳转到支付页面... 💳\n\n方案：' + currentPlan + '\n金额：¥' + currentPrice + '\n\n（此处接入真实支付网关）');
+    closePayment();
+  }
+
+  // Close modal on overlay click
+  document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) closePayment();
+  });
+
+  // Smooth nav highlight
+  document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>
