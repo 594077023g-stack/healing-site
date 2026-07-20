@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: healing-site
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 server.py
+    envVars:
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: DOMAIN
+        value: https://healing-site.onrender.com
