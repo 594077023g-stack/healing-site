@@ -571,13 +571,14 @@
     <div class="price-card">
       <div class="plan-name">陪伴</div>
       <div class="plan-desc">一周的持续陪伴</div>
-      <div class="plan-price">¥328<span class="unit"></span></div>
+      <div class="plan-price">¥328<span class="unit"> /周</span></div>
       <ul class="plan-features">
         <li>不限次数倾诉</li>
         <li>一周内随时对话</li>
         <li>12小时内回复</li>
         <li>专属疗愈计划</li>
         <li>语音通话支持</li>
+        <li style="font-size: 0.78rem; color: var(--text-muted);">🔄 每周自动续费 · 可随时取消</li>
       </ul>
       <button class="btn btn-outline" onclick="openPayment('陪伴', 328)">立即购买</button>
     </div>
@@ -635,12 +636,17 @@
     <div class="modal-icon">💳</div>
     <h2 id="modalTitle">确认购买</h2>
     <p id="modalDesc"></p>
+    <p id="modalSubNote" style="font-size: 0.8rem; color: var(--terracotta); margin-bottom: 1rem; display: none;"></p>
+    <div class="form-group" style="text-align: left;">
+      <label for="payEmail">📧 邮箱（用于接收发票和回信）</label>
+      <input type="email" id="payEmail" placeholder="your@email.com" style="width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #e8e3de; border-radius: 10px; font-size: 0.9rem; font-family: inherit; background: #fefcf9;">
+    </div>
     <div style="display: flex; gap: 1rem; margin-top: 1rem;">
       <button class="btn btn-outline" onclick="closePayment()" style="width: 100%;">再想想</button>
-      <button class="btn btn-primary" onclick="processPayment()" style="width: 100%;">确认支付</button>
+      <button class="btn btn-primary" id="payBtn" onclick="processPayment()" style="width: 100%;">确认支付</button>
     </div>
     <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1rem;">
-      🔒 支付由安全加密通道处理
+      🔒 支付由 Stripe 安全加密通道处理 · 支持卡/支付宝/微信
     </p>
   </div>
 </div>
@@ -692,26 +698,100 @@
     item.classList.toggle('open');
   }
 
-  // Payment modal
+  // ========== Stripe Payment ==========
+  const PRODUCT_MAP = {
+    '深谈': 'shentan_128',
+    '陪伴': 'peiban_328'
+  };
+
   let currentPlan = '';
   let currentPrice = 0;
+  let paying = false;
 
   function openPayment(plan, price) {
     currentPlan = plan;
     currentPrice = price;
     document.getElementById('modalTitle').textContent = '购买「' + plan + '」';
     document.getElementById('modalDesc').textContent = '疗愈方案：' + plan + ' — ¥' + price;
+
+    // Subscription notice
+    const subNote = document.getElementById('modalSubNote');
+    if (plan === '陪伴') {
+      subNote.textContent = '🔄 此为每周自动续费订阅，可随时取消';
+      subNote.style.display = 'block';
+    } else {
+      subNote.style.display = 'none';
+    }
+
     document.getElementById('paymentModal').classList.add('active');
+    // Focus email field for convenience
+    setTimeout(() => document.getElementById('payEmail').focus(), 100);
+    paying = false;
+    const payBtn = document.getElementById('payBtn');
+    payBtn.textContent = '确认支付';
+    payBtn.disabled = false;
+    payBtn.style.opacity = '1';
   }
 
   function closePayment() {
     document.getElementById('paymentModal').classList.remove('active');
   }
 
-  function processPayment() {
-    // In production: redirect to payment gateway (Stripe, Alipay, WeChat Pay, etc.)
-    alert('跳转到支付页面... 💳\n\n方案：' + currentPlan + '\n金额：¥' + currentPrice + '\n\n（此处接入真实支付网关）');
-    closePayment();
+  async function processPayment() {
+    if (paying) return;
+    const payBtn = document.getElementById('payBtn');
+    const productKey = PRODUCT_MAP[currentPlan];
+    const email = document.getElementById('payEmail').value.trim();
+
+    if (!email) {
+      alert('请输入邮箱地址 📧\n\n我们需要邮箱来发送发票和回信。');
+      document.getElementById('payEmail').focus();
+      return;
+    }
+
+    if (!productKey) {
+      alert('请选择有效的疗愈方案 🌿');
+      return;
+    }
+
+    paying = true;
+    payBtn.textContent = '⏳ 正在跳转支付...';
+    payBtn.disabled = true;
+    payBtn.style.opacity = '0.7';
+
+    try {
+      const resp = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: productKey, email: email })
+      });
+
+      const data = await resp.json();
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        alert(
+          '💳 支付功能即将上线！\n\n' +
+          '方案：' + currentPlan + '\n' +
+          '金额：¥' + currentPrice + '\n\n' +
+          '支付网关正在接入中，敬请期待 ✨\n' +
+          '如有需要，请通过其他方式联系我们。'
+        );
+        closePayment();
+      }
+    } catch (err) {
+      alert(
+        '💳 支付功能即将上线！\n\n' +
+        '方案：' + currentPlan + '\n' +
+        '金额：¥' + currentPrice + '\n\n' +
+        '支付网关正在接入中，敬请期待 ✨'
+      );
+      closePayment();
+    }
+
+    paying = false;
   }
 
   // Close modal on overlay click
