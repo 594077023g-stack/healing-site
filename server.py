@@ -190,6 +190,10 @@ class StripeHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/cancel":
             return self.serve_cancel()
 
+        # English version
+        if parsed.path == "/en" or parsed.path == "/en.html":
+            return self.serve_en()
+
         return super().do_GET()
 
     def do_POST(self):
@@ -471,6 +475,14 @@ class StripeHandler(SimpleHTTPRequestHandler):
 </body>
 </html>"""
         return self.html_response(html)
+
+    def serve_en(self):
+        """Serve English version of the site"""
+        en_path = Path(__file__).parent / "en.html"
+        if en_path.exists():
+            html = en_path.read_text()
+            return self.html_response(html)
+        return self.serve_cancel()  # fallback
 
     # ========================
     # Helpers
