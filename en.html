@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tell Me Your Story — Healing Space</title>
+<meta name="description" content="You're not broken. You just have a lot on your mind. Share your story anonymously and receive a heartfelt reply. A warm healing space.">
+<meta property="og:title" content="Tell Me Your Story — Healing Space">
+<meta property="og:description" content="Tell me your story. I'll give you an answer.">
+<meta property="og:image" content="https://healing-site-520.onrender.com/favicon.svg">
+<meta property="og:url" content="https://healing-site-520.onrender.com/en">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
 
@@ -215,6 +222,10 @@
         <div class="form-submit">
           <button type="submit" class="btn btn-primary">✨ Submit Story</button>
         </div>
+        <div class="form-group" style="margin-top: 0.5rem;">
+          <label for="storyEmail">📧 Email (for receiving reply, optional)</label>
+          <input type="email" id="storyEmail" placeholder="your@email.com" style="width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #e8e3de; border-radius: 10px; font-size: 0.9rem; font-family: inherit; background: #fefcf9;">
+        </div>
         <div class="anonymity-note">🔒 Your story is completely anonymous. No one will know who you are.</div>
       </form>
     </div>
@@ -358,12 +369,27 @@
     input.files = e.dataTransfer.files; handleFile(input);
   });
 
-  document.getElementById('storyForm').addEventListener('submit', function(e) {
+  document.getElementById('storyForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const story = document.getElementById('story').value.trim();
-    if (!story) { alert('Please write something first 🌿'); return; }
-    alert('Your story has been received 💌\n\nI will read it carefully and reply within 48 hours.\nPlease check your email.');
-    this.reset(); document.getElementById('fileName').classList.remove('visible');
+    const email = document.getElementById('storyEmail') ? document.getElementById('storyEmail').value.trim() : '';
+    if (!story || story.length < 10) {
+      alert('Please write a bit more 🌿\n\nAt least 10 characters so I can understand what\'s on your mind.');
+      return;
+    }
+    try {
+      const resp = await fetch('/api/submit-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story: story, email: email, lang: 'en' })
+      });
+      const data = await resp.json();
+      alert(data.message || 'Your story has been received 💌\n\nI will reply within 48 hours.');
+      this.reset();
+      document.getElementById('fileName').classList.remove('visible');
+    } catch (err) {
+      alert('Submission failed. Please try again 🌿');
+    }
   });
 
   function toggleFaq(item) {

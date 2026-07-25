@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>心里有事 — 心灵疗愈</title>
+<meta name="description" content="你不是有病，你只是心里有事。匿名倾诉你的故事，收到用心的回信。一个温暖的心灵疗愈空间。">
+<meta property="og:title" content="心里有事 — 心灵疗愈">
+<meta property="og:description" content="把你的故事告诉我，我给你答案。">
+<meta property="og:image" content="https://healing-site-520.onrender.com/favicon.svg">
+<meta property="og:url" content="https://healing-site-520.onrender.com">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
 
@@ -505,6 +512,10 @@
         <div class="form-submit">
           <button type="submit" class="btn btn-primary">✨ 提交心事</button>
         </div>
+        <div class="form-group" style="margin-top: 0.5rem;">
+          <label for="storyEmail">📧 邮箱（用于接收回信，选填）</label>
+          <input type="email" id="storyEmail" placeholder="your@email.com" style="width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #e8e3de; border-radius: 10px; font-size: 0.9rem; font-family: inherit; background: #fefcf9;">
+        </div>
 
         <div class="anonymity-note">
           <span class="check">🔒</span> 你的故事是完全匿名的，没有人会知道你是谁
@@ -680,17 +691,27 @@
   });
 
   // Form submit
-  document.getElementById('storyForm').addEventListener('submit', function(e) {
+  document.getElementById('storyForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const story = document.getElementById('story').value.trim();
-    if (!story) {
-      alert('请写下你的心事再提交哦 🌿');
+    const email = document.getElementById('storyEmail') ? document.getElementById('storyEmail').value.trim() : '';
+    if (!story || story.length < 10) {
+      alert('请多写几个字 🌿\n\n至少10个字，让我了解你的心事。');
       return;
     }
-    // In production: POST to backend
-    alert('你的心事已经收到了 💌\n\n我会认真阅读，并在48小时内给你回信。\n请留意你的邮箱。');
-    this.reset();
-    document.getElementById('fileName').classList.remove('visible');
+    try {
+      const resp = await fetch('/api/submit-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story: story, email: email, lang: 'zh' })
+      });
+      const data = await resp.json();
+      alert(data.message || '你的心事已经收到了 💌\n\n我会在48小时内给你回信。');
+      this.reset();
+      document.getElementById('fileName').classList.remove('visible');
+    } catch (err) {
+      alert('提交失败，请重试 🌿');
+    }
   });
 
   // FAQ toggle

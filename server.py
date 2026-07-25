@@ -205,6 +205,9 @@ class StripeHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/webhook":
             return self.handle_webhook()
 
+        if parsed.path == "/api/submit-story":
+            return self.handle_story_submission()
+
         return super().do_POST()
 
     # ========================
@@ -358,6 +361,46 @@ class StripeHandler(SimpleHTTPRequestHandler):
             print(f"  🔁 订阅更新: {sub.get('id')} — status={sub.get('status')}")
 
         return self.json_response(200, {"received": True})
+
+    # ========================
+    # Story Submission
+    # ========================
+    def handle_story_submission(self):
+        """Save anonymous story submissions"""
+        length = int(self.headers.get("Content-Length", 0))
+        raw = self.rfile.read(length)
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            return self.json_response(400, {"error": "Invalid JSON"})
+
+        story = data.get("story", "").strip()
+        email = data.get("email", "").strip()
+        lang = data.get("lang", "zh")
+
+        if not story or len(story) < 10:
+            return self.json_response(400, {"error": "Story too short"})
+
+        record = {
+            "story": story,
+            "email": email if email else "anonymous",
+            "lang": lang,
+            "length": len(story),
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        # Save to stories file
+        stories = load_json(DATA_DIR / "stories.json")
+        stories.append(record)
+        save_json(DATA_DIR / "stories.json", stories)
+
+        print(f"  📖 新故事 ({lang}): {len(story)}字 — {email if email else '匿名'}")
+        print(f"  📊 总计: {len(stories)} 篇")
+
+        return self.json_response(200, {
+            "received": True,
+            "message": "你的心事已经收到 💚 我会在48小时内回信。"
+        })
 
     # ========================
     # 支付记录列表（管理用）

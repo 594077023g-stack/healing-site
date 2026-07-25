@@ -1,0 +1,7 @@
+.env
+data/payments.json
+data/customers.json
+data/stories.json
+data/invoices/
+__pycache__/
+*.pyc
