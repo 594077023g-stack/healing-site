@@ -8,6 +8,7 @@ import os
 import json
 import time
 import hashlib
+import secrets
 from pathlib import Path
 from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -31,6 +32,21 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
 YOUR_DOMAIN = os.environ.get("DOMAIN", "https://healing-site-520.onrender.com").strip()
 
 stripe.api_key = STRIPE_SECRET_KEY
+
+# Admin
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "healing2025").strip()
+ADMIN_SESSIONS = {}  # token → expiry_timestamp
+
+def check_admin(request):
+    """Check if request has valid admin cookie"""
+    cookie = request.headers.get("Cookie", "")
+    for part in cookie.split(";"):
+        part = part.strip()
+        if part.startswith("admin_token="):
+            token = part.split("=", 1)[1]
+            if token in ADMIN_SESSIONS and ADMIN_SESSIONS[token] > time.time():
+                return True
+    return False
 
 # ============================================================
 # 数据存储
@@ -198,7 +214,26 @@ class StripeHandler(SimpleHTTPRequestHandler):
             return self.create_checkout_session(parsed)
 
         if parsed.path == "/api/payments":
+            if not check_admin(self):
+                return self.serve_admin_login()
             return self.serve_payments_list()
+
+        if parsed.path == "/api/stories":
+            if not check_admin(self):
+                return self.serve_admin_login()
+            return self.serve_stories_list()
+
+        if parsed.path == "/admin":
+            if check_admin(self):
+                return self.serve_admin_dashboard()
+            return self.serve_admin_login()
+
+        if parsed.path == "/admin/logout":
+            self.send_response(302)
+            self.send_header("Set-Cookie", "admin_token=; Path=/; Max-Age=0")
+            self.send_header("Location", "/admin")
+            self.end_headers()
+            return
 
         if parsed.path == "/success":
             return self.serve_success()
@@ -223,6 +258,9 @@ class StripeHandler(SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/submit-story":
             return self.handle_story_submission()
+
+        if parsed.path == "/admin/login":
+            return self.handle_admin_login()
 
         return super().do_POST()
 
@@ -542,6 +580,141 @@ class StripeHandler(SimpleHTTPRequestHandler):
             html = en_path.read_text()
             return self.html_response(html)
         return self.serve_cancel()  # fallback
+
+    # ========================
+    # Admin Auth & Pages
+    # ========================
+    def handle_admin_login(self):
+        length = int(self.headers.get("Content-Length", 0))
+        raw = self.rfile.read(length)
+        try:
+            data = json.loads(raw) if raw else {}
+        except json.JSONDecodeError:
+            data = parse_qs(raw.decode()) if raw else {}
+
+        password = ""
+        if isinstance(data, dict):
+            password = data.get("password", "")
+        else:
+            password = data.get("password", [""])[0]
+
+        if password == ADMIN_PASSWORD:
+            token = secrets.token_hex(32)
+            ADMIN_SESSIONS[token] = time.time() + 86400  # 24h
+            self.send_response(302)
+            self.send_header("Set-Cookie", f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400")
+            self.send_header("Location", "/admin")
+            self.end_headers()
+        else:
+            return self.serve_admin_login("密码错误")
+
+    def serve_admin_login(self, error=""):
+        msg = f'<p style="color:#c4826b;margin-bottom:1rem;">{error}</p>' if error else ""
+        html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>管理后台 — 心里有事</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#fef9f0;color:#3d3835;display:flex;align-items:center;justify-content:center;min-height:100vh}}
+.card{{background:#fff;border-radius:16px;padding:3rem;max-width:380px;width:90%;box-shadow:0 8px 40px rgba(60,50,40,0.08);text-align:center}}
+h1{{font-family:'Noto Serif SC',serif;color:#8b9d83;margin-bottom:1.5rem}}
+input{{width:100%;padding:12px;border:1.5px solid #e8e3de;border-radius:10px;font-size:1rem;margin-bottom:1rem;font-family:inherit}}
+button{{width:100%;padding:12px;background:#8b9d83;color:#fff;border:none;border-radius:50px;font-size:1rem;cursor:pointer;font-weight:500}}
+button:hover{{background:#7d8f75}}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🌿 管理后台</h1>
+{msg}
+<form method="post" action="/admin/login">
+<input type="password" name="password" placeholder="输入管理密码" autofocus required>
+<button type="submit">登录</button>
+</form>
+</div>
+</body></html>"""
+        return self.html_response(html)
+
+    def serve_admin_dashboard(self):
+        payments = load_json(PAYMENTS_FILE)
+        stories = load_json(DATA_DIR / "stories.json")
+        total = sum(p.get("amount", 0) for p in payments)
+
+        pay_rows = ""
+        for p in reversed(payments[-20:]):
+            pay_rows += f'<tr><td>{p.get("created_at","")[:16]}</td><td>{p.get("customer_email","")}</td><td>{p.get("plan","")}</td><td style="text-align:right">${p.get("amount",0):.2f}</td></tr>'
+
+        story_rows = ""
+        for s in reversed(stories[-20:]):
+            preview = s.get("story","")[:50] + ("..." if len(s.get("story",""))>50 else "")
+            story_rows += f'<tr><td>{s.get("submitted_at","")[:16]}</td><td>{s.get("email","")}</td><td>{s.get("lang","")}</td><td>{preview}</td></tr>'
+
+        html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>管理后台 — 心里有事</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#fef9f0;color:#3d3835;padding:40px 20px;max-width:1000px;margin:0 auto}}
+h1{{color:#8b9d83;margin-bottom:1.5rem}}
+.stats{{display:flex;gap:24px;margin-bottom:2rem}}
+.stat{{background:#fff;padding:20px 24px;border-radius:12px;box-shadow:0 2px 12px rgba(60,50,40,0.06);flex:1;text-align:center}}
+.stat .num{{font-size:2rem;font-weight:600;color:#8b9d83}}
+.stat .label{{font-size:0.8rem;color:#9a918b;margin-top:4px}}
+h2{{font-size:1.2rem;margin:2rem 0 1rem;color:#3d3835}}
+table{{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(60,50,40,0.06);margin-bottom:2rem}}
+th{{background:#f5f2ed;text-align:left;padding:10px 12px;font-size:0.85rem}}
+td{{padding:10px 12px;font-size:0.9rem;border-bottom:1px solid #e8e3de}}
+.btn{{display:inline-block;padding:8px 20px;background:#c4826b;color:#fff;border-radius:20px;text-decoration:none;font-size:0.8rem}}
+.logout{{background:transparent;color:#c4826b;border:1px solid #c4826b}}
+</style>
+</head>
+<body>
+<h1>🌿 心里有事 · 管理后台</h1>
+<a href="/admin/logout" class="btn logout" style="float:right;margin-top:-3rem">退出</a>
+
+<div class="stats">
+<div class="stat"><div class="num">¥{total:.2f}</div><div class="label">总收入</div></div>
+<div class="stat"><div class="num">{len(payments)}</div><div class="label">订单</div></div>
+<div class="stat"><div class="num">{len(stories)}</div><div class="label">故事</div></div>
+</div>
+
+<h2>💳 最近支付</h2>
+<table><tr><th>时间</th><th>客户</th><th>方案</th><th style="text-align:right">金额</th></tr>
+{pay_rows if pay_rows else '<tr><td colspan="4" style="text-align:center;color:#9a918b;padding:2rem">暂无支付记录</td></tr>'}
+</table>
+
+<h2>📖 最近故事</h2>
+<table><tr><th>时间</th><th>邮箱</th><th>语言</th><th>预览</th></tr>
+{story_rows if story_rows else '<tr><td colspan="4" style="text-align:center;color:#9a918b;padding:2rem">暂无故事</td></tr>'}
+</table>
+
+<p style="font-size:0.8rem;color:#9a918b;text-align:center;margin-top:2rem">🔒 此页面仅管理员可访问</p>
+</body></html>"""
+        return self.html_response(html)
+
+    def serve_stories_list(self):
+        stories = load_json(DATA_DIR / "stories.json")
+        rows = ""
+        for s in reversed(stories[-50:]):
+            story = s.get("story","").replace("<","&lt;").replace(">","&gt;")
+            rows += f"""<tr>
+<td>{s.get("submitted_at","")[:16]}</td>
+<td>{s.get("email","")}</td>
+<td>{s.get("lang","")}</td>
+<td style="max-width:400px;word-break:break-word">{story}</td>
+</tr>"""
+        html = f"""<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><title>故事列表</title>
+<style>body{{font-family:sans-serif;padding:20px}}table{{width:100%;border-collapse:collapse}}
+th,td{{padding:8px 12px;text-align:left;border-bottom:1px solid #ddd;font-size:14px}}
+th{{background:#f5f5f5}}</style></head>
+<body><h2>📖 收件箱 ({len(stories)})</h2>
+<table><tr><th>时间</th><th>邮箱</th><th>语言</th><th>内容</th></tr>{rows}</table></body></html>"""
+        return self.html_response(html)
 
     # ========================
     # Helpers
