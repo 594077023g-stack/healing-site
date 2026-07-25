@@ -68,7 +68,7 @@ def save_customer(record):
 # ============================================================
 # 轻语 → $0.90 一次性
 # 深谈 → $9.90 一次性
-# 陪伴 → $99/周 订阅
+# 陪伴 → $999/周 订阅
 PRODUCTS = {
     "qingyu_090": {
         "name": "心里有事 · 轻语",
@@ -104,7 +104,7 @@ PRODUCTS = {
     "peiban_9900": {
         "name": "心里有事 · 陪伴",
         "description": "一周的持续陪伴，每周自动续费 — 12小时内回复",
-        "price": 9900,
+        "price": 99900,
         "currency": "usd",
         "mode": "subscription",
         "plan_name": "陪伴",
