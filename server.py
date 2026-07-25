@@ -64,17 +64,33 @@ def save_customer(record):
 
 
 # ============================================================
-# 产品配置
+# 产品配置 (USD)
 # ============================================================
-# 深谈 → 一次性支付 (payment)
-# 陪伴 → 每周订阅 (subscription, 每周扣 ¥328)
+# 轻语 → $0.90 一次性
+# 深谈 → $9.90 一次性
+# 陪伴 → $99/周 订阅
 PRODUCTS = {
-    "shentan_128": {
+    "qingyu_090": {
+        "name": "心里有事 · 轻语",
+        "description": "一次温柔的倾听 — 48小时内回复",
+        "price": 90,
+        "currency": "usd",
+        "mode": "payment",
+        "plan_name": "轻语",
+        "plan_label": "一次温柔的倾听",
+        "features": [
+            "提交你的故事",
+            "收到一封暖心回信",
+            "48小时内回复",
+            "匿名倾诉空间",
+        ],
+    },
+    "shentan_990": {
         "name": "心里有事 · 深谈",
         "description": "三次深入的对话 — 24小时内回复",
-        "price": 12800,
-        "currency": "cny",
-        "mode": "payment",  # 一次性
+        "price": 990,
+        "currency": "usd",
+        "mode": "payment",
         "plan_name": "深谈",
         "plan_label": "三次深入的对话",
         "features": [
@@ -85,12 +101,12 @@ PRODUCTS = {
             "可上传语音故事",
         ],
     },
-    "peiban_328": {
+    "peiban_9900": {
         "name": "心里有事 · 陪伴",
         "description": "一周的持续陪伴，每周自动续费 — 12小时内回复",
-        "price": 32800,
-        "currency": "cny",
-        "mode": "subscription",  # 订阅制，每周
+        "price": 9900,
+        "currency": "usd",
+        "mode": "subscription",
         "plan_name": "陪伴",
         "plan_label": "一周的持续陪伴",
         "interval": "week",
@@ -225,7 +241,7 @@ class StripeHandler(SimpleHTTPRequestHandler):
         else:
             params = {k: v[0] for k, v in parse_qs(parsed.query).items()}
 
-        product_key = params.get("product", "shentan_128")
+        product_key = params.get("product", "shentan_990")
         customer_email = params.get("email", "").strip()
 
         if product_key not in PRODUCTS:

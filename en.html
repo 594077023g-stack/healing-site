@@ -256,23 +256,25 @@
   <p class="section-desc">Pick the level of conversation that feels right for you. Every option is a genuine dialogue.</p>
 
   <div class="pricing-grid">
+    <!-- Tier 1 -->
     <div class="price-card">
       <div class="plan-name">Whisper</div>
       <div class="plan-desc">A gentle listen</div>
-      <div class="plan-price">$0</div>
+      <div class="plan-price">$0.90</div>
       <ul class="plan-features">
         <li>Submit your story</li>
         <li>Receive a heartfelt reply</li>
         <li>Response within 48h</li>
         <li>Anonymous space</li>
       </ul>
-      <a href="#tell-story" class="btn btn-outline">Start Free</a>
+      <button class="btn btn-outline" onclick="openPayment('Whisper', '0.90')">Start</button>
     </div>
 
+    <!-- Tier 2 (featured) -->
     <div class="price-card featured">
       <div class="plan-name">Deep Talk</div>
       <div class="plan-desc">Three deep conversations</div>
-      <div class="plan-price">$18</div>
+      <div class="plan-price">$9.90</div>
       <ul class="plan-features">
         <li>Submit your story</li>
         <li>Three back-and-forth dialogues</li>
@@ -280,13 +282,14 @@
         <li>Personalized healing guidance</li>
         <li>Voice story upload</li>
       </ul>
-      <button class="btn btn-primary" onclick="openPayment('Deep Talk', 18)">Buy Now</button>
+      <button class="btn btn-primary" onclick="openPayment('Deep Talk', '9.90')">Buy Now</button>
     </div>
 
+    <!-- Tier 3 -->
     <div class="price-card">
       <div class="plan-name">Companion</div>
       <div class="plan-desc">A week of ongoing support</div>
-      <div class="plan-price">$48<span class="unit"> /week</span></div>
+      <div class="plan-price">$99<span class="unit"> /week</span></div>
       <ul class="plan-features">
         <li>Unlimited sharing</li>
         <li>Chat anytime for a week</li>
@@ -295,7 +298,7 @@
         <li>Voice call support</li>
         <li style="font-size: 0.78rem; color: var(--text-muted);">🔄 Weekly auto-renewal · Cancel anytime</li>
       </ul>
-      <button class="btn btn-outline" onclick="openPayment('Companion', 48)">Buy Now</button>
+      <button class="btn btn-outline" onclick="openPayment('Companion', '99')">Buy Now</button>
     </div>
   </div>
 </section>
@@ -397,8 +400,8 @@
     item.classList.toggle('open');
   }
 
-  const PRODUCT_MAP = { 'Deep Talk': 'shentan_128', 'Companion': 'peiban_328' };
-  let currentPlan = '', currentPrice = 0, paying = false;
+  const PRODUCT_MAP = { 'Whisper': 'qingyu_090', 'Deep Talk': 'shentan_990', 'Companion': 'peiban_9900' };
+  let currentPlan = '', currentPrice = '', paying = false;
 
   function openPayment(plan, price) {
     currentPlan = plan; currentPrice = price;

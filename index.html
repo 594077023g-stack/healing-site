@@ -553,25 +553,25 @@
   </p>
 
   <div class="pricing-grid">
-    <!-- Free tier -->
+    <!-- Tier 1 -->
     <div class="price-card">
       <div class="plan-name">轻语</div>
       <div class="plan-desc">一次温柔的倾听</div>
-      <div class="plan-price">¥0<span class="unit"></span></div>
+      <div class="plan-price">$0.90</div>
       <ul class="plan-features">
         <li>提交你的故事</li>
         <li>收到一封暖心回信</li>
         <li>48小时内回复</li>
         <li>匿名倾诉空间</li>
       </ul>
-      <a href="#tell-story" class="btn btn-outline">免费开始</a>
+      <button class="btn btn-outline" onclick="openPayment('轻语', '0.90')">开始倾诉</button>
     </div>
 
-    <!-- Standard tier -->
+    <!-- Tier 2 (featured) -->
     <div class="price-card featured">
       <div class="plan-name">深谈</div>
       <div class="plan-desc">三次深入的对话</div>
-      <div class="plan-price">¥128<span class="unit"></span></div>
+      <div class="plan-price">$9.90</div>
       <ul class="plan-features">
         <li>提交你的故事</li>
         <li>三次来回深入对话</li>
@@ -579,14 +579,14 @@
         <li>个性化疗愈建议</li>
         <li>可上传语音故事</li>
       </ul>
-      <button class="btn btn-primary" onclick="openPayment('深谈', 128)">立即购买</button>
+      <button class="btn btn-primary" onclick="openPayment('深谈', '9.90')">立即购买</button>
     </div>
 
-    <!-- Premium tier -->
+    <!-- Tier 3 -->
     <div class="price-card">
       <div class="plan-name">陪伴</div>
       <div class="plan-desc">一周的持续陪伴</div>
-      <div class="plan-price">¥328<span class="unit"> /周</span></div>
+      <div class="plan-price">$99<span class="unit"> /周</span></div>
       <ul class="plan-features">
         <li>不限次数倾诉</li>
         <li>一周内随时对话</li>
@@ -595,7 +595,7 @@
         <li>语音通话支持</li>
         <li style="font-size: 0.78rem; color: var(--text-muted);">🔄 每周自动续费 · 可随时取消</li>
       </ul>
-      <button class="btn btn-outline" onclick="openPayment('陪伴', 328)">立即购买</button>
+      <button class="btn btn-outline" onclick="openPayment('陪伴', '99')">立即购买</button>
     </div>
   </div>
 </section>
@@ -725,19 +725,20 @@
 
   // ========== Stripe Payment ==========
   const PRODUCT_MAP = {
-    '深谈': 'shentan_128',
-    '陪伴': 'peiban_328'
+    '轻语': 'qingyu_090',
+    '深谈': 'shentan_990',
+    '陪伴': 'peiban_9900'
   };
 
   let currentPlan = '';
-  let currentPrice = 0;
+  let currentPrice = '';
   let paying = false;
 
   function openPayment(plan, price) {
     currentPlan = plan;
     currentPrice = price;
     document.getElementById('modalTitle').textContent = '购买「' + plan + '」';
-    document.getElementById('modalDesc').textContent = '疗愈方案：' + plan + ' — ¥' + price;
+    document.getElementById('modalDesc').textContent = '疗愈方案：' + plan + ' — $' + price;
 
     // Subscription notice
     const subNote = document.getElementById('modalSubNote');
@@ -800,7 +801,7 @@
         alert(
           '💳 支付功能即将上线！\n\n' +
           '方案：' + currentPlan + '\n' +
-          '金额：¥' + currentPrice + '\n\n' +
+          '金额：$' + currentPrice + '\n\n' +
           '支付网关正在接入中，敬请期待 ✨\n' +
           '如有需要，请通过其他方式联系我们。'
         );
