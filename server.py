@@ -594,9 +594,11 @@ class StripeHandler(SimpleHTTPRequestHandler):
 
         password = ""
         if isinstance(data, dict):
-            password = data.get("password", "")
-        else:
-            password = data.get("password", [""])[0]
+            pw = data.get("password", "")
+            if isinstance(pw, list):
+                password = pw[0] if pw else ""
+            else:
+                password = pw
 
         if password == ADMIN_PASSWORD:
             token = secrets.token_hex(32)
