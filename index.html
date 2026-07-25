@@ -795,25 +795,13 @@
       const data = await resp.json();
 
       if (data.url) {
-        // Redirect to Stripe Checkout
         window.location.href = data.url;
       } else {
-        alert(
-          '💳 支付功能即将上线！\n\n' +
-          '方案：' + currentPlan + '\n' +
-          '金额：$' + currentPrice + '\n\n' +
-          '支付网关正在接入中，敬请期待 ✨\n' +
-          '如有需要，请通过其他方式联系我们。'
-        );
+        alert('支付失败: ' + (data.error || '未知错误') + '\n\n请稍后重试 🌿');
         closePayment();
       }
     } catch (err) {
-      alert(
-        '💳 支付功能即将上线！\n\n' +
-        '方案：' + currentPlan + '\n' +
-        '金额：¥' + currentPrice + '\n\n' +
-        '支付网关正在接入中，敬请期待 ✨'
-      );
+      alert('网络错误，请检查连接后重试 🌿');
       closePayment();
     }
 

@@ -434,9 +434,9 @@
       const resp = await fetch('/api/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product: productKey, email: email }) });
       const data = await resp.json();
       if (data.url) { window.location.href = data.url; }
-      else { alert('💳 Payments coming soon!\n\nPlan: ' + currentPlan + '\nAmount: $' + currentPrice + '\n\nPayment gateway is being set up. Check back soon ✨'); closePayment(); }
+      else { alert('Payment failed: ' + (data.error || 'Unknown error') + '\n\nPlease try again 🌿'); closePayment(); }
     } catch (err) {
-      alert('💳 Payments coming soon!\n\nPlan: ' + currentPlan + '\nAmount: $' + currentPrice + '\n\nPayment gateway is being set up ✨');
+      alert('Network error. Please check your connection and try again 🌿');
       closePayment();
     }
     paying = false;

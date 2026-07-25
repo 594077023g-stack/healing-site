@@ -26,8 +26,8 @@ if _ENV_FILE.exists():
                 os.environ[key] = val
 
 PORT = int(os.environ.get("PORT", 8080))
-STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
 YOUR_DOMAIN = os.environ.get("DOMAIN", f"http://localhost:{PORT}")
 
 stripe.api_key = STRIPE_SECRET_KEY

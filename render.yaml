@@ -8,4 +8,4 @@ services:
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: DOMAIN
-        value: https://healing-site.onrender.com
+        value: https://healing-site-520.onrender.com
