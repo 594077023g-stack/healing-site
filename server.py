@@ -40,16 +40,44 @@ stripe.api_key = STRIPE_SECRET_KEY
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "healing2025").strip()
 ADMIN_SESSIONS = {}
 
-# Email notification
+# Email notification — 优先 Resend API，其次 SMTP
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
 SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "").strip()
 SMTP_PASS = os.environ.get("SMTP_PASS", "").strip()
-NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", SMTP_USER).strip()
+NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "info@sendmeyourstory.com").strip()
 
 def send_email(subject, body):
+    # Resend API (preferred — works on Render)
+    if RESEND_API_KEY:
+        try:
+            import urllib.request
+            data = json.dumps({
+                "from": "心里有事 <noreply@sendmeyourstory.com>",
+                "to": [NOTIFY_EMAIL],
+                "subject": subject,
+                "text": body,
+            }).encode()
+            req = urllib.request.Request(
+                "https://api.resend.com/emails",
+                data=data,
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+            )
+            urllib.request.urlopen(req, timeout=15)
+            print(f"  📧 Resend: {subject}")
+            return True, "sent"
+        except Exception as e:
+            err = f"Resend: {e}"
+            print(f"  ⚠️ {err}")
+            return False, err
+
+    # Fallback: SMTP
     if not SMTP_HOST or not SMTP_USER:
-        return False, "SMTP not configured"
+        return False, "No email configured"
     try:
         msg = MIMEMultipart()
         msg["From"] = SMTP_USER
