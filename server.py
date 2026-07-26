@@ -49,8 +49,7 @@ NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", SMTP_USER).strip()
 
 def send_email(subject, body):
     if not SMTP_HOST or not SMTP_USER:
-        print(f"  📧 邮件未配置，跳过: {subject}")
-        return False
+        return False, "SMTP not configured"
     try:
         msg = MIMEMultipart()
         msg["From"] = SMTP_USER
@@ -67,10 +66,11 @@ def send_email(subject, body):
         server.sendmail(SMTP_USER, [NOTIFY_EMAIL], msg.as_string())
         server.quit()
         print(f"  📧 邮件已发送: {subject}")
-        return True
+        return True, "sent"
     except Exception as e:
-        print(f"  ⚠️ SMTP错误 [{SMTP_HOST}:{SMTP_PORT}] {type(e).__name__}: {e}")
-        return False
+        err = f"{type(e).__name__}: {e}"
+        print(f"  ⚠️ SMTP错误 [{SMTP_HOST}:{SMTP_PORT}] {err}")
+        return False, err
 
 def check_admin(request):
     """Check if request has valid admin cookie"""
@@ -271,12 +271,8 @@ class StripeHandler(SimpleHTTPRequestHandler):
             return
 
         if parsed.path == "/api/test-email":
-            try:
-                import traceback
-                ok = send_email("🧪 测试邮件", "测试")
-                return self.json_response(200, {"success": ok})
-            except Exception as e:
-                return self.json_response(500, {"error": str(e), "type": type(e).__name__, "trace": traceback.format_exc()[-300:]})
+            ok, err = send_email("🧪 测试邮件", "测试")
+            return self.json_response(200, {"success": ok, "error": err})
 
         if parsed.path == "/success":
             return self.serve_success()
