@@ -32,7 +32,7 @@ if _ENV_FILE.exists():
 PORT = int(os.environ.get("PORT", 8080))
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
-YOUR_DOMAIN = os.environ.get("DOMAIN", "https://healing-site-520.onrender.com").strip()
+YOUR_DOMAIN = os.environ.get("DOMAIN", "https://www.sendmeyourstory.com").strip()
 
 stripe.api_key = STRIPE_SECRET_KEY
 
