@@ -271,6 +271,10 @@ class StripeHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             return
 
+        if parsed.path == "/api/test-email":
+            ok = send_email("🧪 测试邮件", "如果你收到这封邮件，说明 SMTP 配置正确！")
+            return self.json_response(200, {"success": ok, "host": SMTP_HOST, "port": SMTP_PORT, "user": SMTP_USER[:20]+"..."})
+
         if parsed.path == "/success":
             return self.serve_success()
 
