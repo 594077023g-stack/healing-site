@@ -9,6 +9,9 @@ import json
 import time
 import hashlib
 import secrets
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -35,7 +38,35 @@ stripe.api_key = STRIPE_SECRET_KEY
 
 # Admin
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "healing2025").strip()
-ADMIN_SESSIONS = {}  # token → expiry_timestamp
+ADMIN_SESSIONS = {}
+
+# Email notification
+SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "").strip()
+SMTP_PASS = os.environ.get("SMTP_PASS", "").strip()
+NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", SMTP_USER).strip()
+
+def send_email(subject, body):
+    if not SMTP_HOST or not SMTP_USER:
+        print(f"  📧 邮件未配置，跳过: {subject}")
+        return False
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = SMTP_USER
+        msg["To"] = NOTIFY_EMAIL
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, [NOTIFY_EMAIL], msg.as_string())
+        print(f"  📧 邮件已发送: {subject}")
+        return True
+    except Exception as e:
+        print(f"  ⚠️ 邮件发送失败: {e}")
+        return False
 
 def check_admin(request):
     """Check if request has valid admin cookie"""
@@ -406,6 +437,12 @@ class StripeHandler(SimpleHTTPRequestHandler):
             print(f"  ✅ 支付成功: {plan} ¥{amount_total} — {customer_email}")
             print(f"  📄 发票: {local_invoice_id}")
 
+            # Email notification
+            send_email(
+                f"💳 新支付 · {plan} · ${amount_total:.2f}",
+                f"客户: {customer_email or '未知'}\n方案: {plan}\n金额: ${amount_total:.2f} {currency}\n发票: {local_invoice_id}\n时间: {record['created_at']}\n\n管理后台: {YOUR_DOMAIN}/admin"
+            )
+
         elif event_type == "invoice.paid":
             inv = event["data"]["object"]
             print(f"  📄 发票已支付: {inv.get('id', '')} — ¥{inv.get('amount_paid', 0)/100}")
@@ -450,6 +487,12 @@ class StripeHandler(SimpleHTTPRequestHandler):
 
         print(f"  📖 新故事 ({lang}): {len(story)}字 — {email if email else '匿名'}")
         print(f"  📊 总计: {len(stories)} 篇")
+
+        # Email notification
+        send_email(
+            f"📖 新故事 · {lang} · {len(story)}字",
+            f"语言: {lang}\n字数: {len(story)}\n邮箱: {email if email else '匿名'}\n时间: {record['submitted_at']}\n\n---\n{story}\n---\n\n管理后台: {YOUR_DOMAIN}/admin"
+        )
 
         return self.json_response(200, {
             "received": True,
