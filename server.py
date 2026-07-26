@@ -59,18 +59,17 @@ def send_email(subject, body):
         msg.attach(MIMEText(body, "plain", "utf-8"))
 
         if SMTP_PORT == 465:
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-                server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(SMTP_USER, [NOTIFY_EMAIL], msg.as_string())
+            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15)
         else:
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-                server.starttls()
-                server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(SMTP_USER, [NOTIFY_EMAIL], msg.as_string())
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15)
+            server.starttls()
+        server.login(SMTP_USER, SMTP_PASS)
+        server.sendmail(SMTP_USER, [NOTIFY_EMAIL], msg.as_string())
+        server.quit()
         print(f"  📧 邮件已发送: {subject}")
         return True
     except Exception as e:
-        print(f"  ⚠️ 邮件发送失败: {e}")
+        print(f"  ⚠️ SMTP错误 [{SMTP_HOST}:{SMTP_PORT}] {type(e).__name__}: {e}")
         return False
 
 def check_admin(request):
@@ -273,7 +272,7 @@ class StripeHandler(SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/test-email":
             ok = send_email("🧪 测试邮件", "如果你收到这封邮件，说明 SMTP 配置正确！")
-            return self.json_response(200, {"success": ok, "host": SMTP_HOST, "port": SMTP_PORT, "user": SMTP_USER[:20]+"..."})
+            return self.json_response(200, {"success": ok, "host": SMTP_HOST, "port": SMTP_PORT})
 
         if parsed.path == "/success":
             return self.serve_success()
